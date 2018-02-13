@@ -1,11 +1,9 @@
-function getImgUrl() {
-    var img = document.getElementsByTagName('img');
-    img.className = 'test';
-    var src = "";
-    for (var i = 0; i < img.length; i++) {
-        src += img[i].src;
-        src += "\n";
-    }
-    console.log(src);
-    console.log(document.images.length);
-}
+
+chrome.runtime.onMessage.addListener(  
+    function(request, sender, sendResponse) {  
+      console.log(sender.tab ?  
+                  "from a content script:" + sender.tab.url :  
+                  "from the extension");  
+      if (request.greeting == "hello")  
+        sendResponse({farewell: "I'm backgroud,goodbye!"});  
+    });

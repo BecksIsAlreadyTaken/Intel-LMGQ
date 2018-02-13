@@ -9,15 +9,19 @@
         "default_title": "Click here!"
     },
     "permissions": [
+        "tabs",
         "activeTab",
         "storage"
     ],
     "content_scripts": [{
+        "matches": ["http://*/*"],
         "css": ["mycss.css"],
         "js": ["jquery.min.js","content.js"]
     }],
     "background":{
-        "scripts": ["jquery.min.js","background.js"]
+        "scripts": ["jquery.min.js","background.js"],
+        "presistent": true
     },
+    "options_page": "options.html",
     "content_security_policy": "script-src 'self'; object-src 'self'"
 }
