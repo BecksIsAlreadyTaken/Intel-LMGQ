@@ -9,34 +9,33 @@ function getImgUrl() {
     console.log(src);
     console.log(document.images.length);
 }
+//iframe background ajax 缩略图 属性里的链接
+function getIframeImgUrl() {}
+
+function getBgImgUrl() {}
+
+function getAjaxImgUrl() {}
 
 function blockNsfwImgs() {
     console.log("nsfw");
 }
 
-function checkWhiteList() {
-    var _inWhiteList = "false";
+function connectToServer() {}
+
+function checkWhiteList() { //2018.2.15 如何将回调函数的局部变量值保存并传出
     chrome.storage.sync.get({ whitelist: [] }, function(items) {
-        console.log('callback');
-        chrome.tabs.query({ active: true }, function(tabs) {
-            var currentUrl = tabs[0].url;
-            console.log(currentUrl);
+        chrome.runtime.sendMessage({ toBg: "true" }, function(response) {
+            console.log(response.currentUrl);
             for (i in items.whitelist) {
-                if (items.whitelist[i] == currentUrl) {
-                    _inWhiteList = "true";
+                if (items.whitelist[i].url == response.currentUrl) {
+                    var f = true;
                     break;
                 }
             }
         });
     });
-    return _inWhiteList;
+    return;
 }
-
-function connectToServer() {}
-
-chrome.runtime.sendMessage({ greeting: "hello" }, function(response) {
-    console.log(response.farewell);
-});
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
