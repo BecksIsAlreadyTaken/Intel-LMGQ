@@ -4,8 +4,7 @@
     "version": "1.0",
     "manifest_version": 2,
     "browser_action": {
-        "default_popup": "popup.html",
-        "default_icon": "LMGQ.png",
+        "default_icon": "on.png",
         "default_title": "Click here!"
     },
     "permissions": [
@@ -14,7 +13,7 @@
         "activeTab"
     ],
     "content_scripts": [{
-        "matches": ["http://*/*"],
+        "matches": ["http://*/*", "https://*/*"],
         "css": ["css/mycss.css"],
         "js": ["js/jquery.min.js","js/content.js"]
     }],
