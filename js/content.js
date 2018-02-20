@@ -40,8 +40,9 @@ chrome.runtime.onMessage.addListener(
                 }
             });
             chrome.storage.local.remove(["inWl", "currentUrl"], function() {});
-            sendResponse({ resp: 'content' });
-        } else if (request.state === "false") {
+            sendResponse({ resp: 'turn on' });
+        } else if (request.state === "off") {
             returnToNormal();
+            sendResponse({ resp: 'turn off' });
         }
     });
