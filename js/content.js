@@ -26,6 +26,8 @@ function returnToNormal() {
     console.log("off");
 }
 
+chrome.runtime.sendMessage({ toBg: "true" }, function(response) {});
+
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         console.log(sender.tab ?
