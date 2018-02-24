@@ -1,11 +1,11 @@
 {
-    "name": "LMGQ",
+    "name": "nsfw block",
     "description": "init version",
     "version": "1.0",
     "manifest_version": 2,
     "browser_action": {
-        "default_icon": "on.png",
-        "default_title": "Click here!"
+        "default_icon": "default.png",
+        "default_title": "nsfw block"
     },
     "permissions": [
         "storage",

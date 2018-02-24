@@ -20,7 +20,9 @@ $(function() {
     });
     $('#add-url').click(function() {
         var newUrl = $('#url').val();
-        if (checkUrl(newUrl) == false) {
+        var reg = new RegExp("chrome://");
+        var isChromeTag = reg.test(newUrl);
+        if (checkUrl(newUrl) == false || isChromeTag == true) {
             alert("please input valid url.");
             $('#url').val('');
         } else {
