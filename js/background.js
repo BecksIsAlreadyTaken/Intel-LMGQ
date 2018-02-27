@@ -3,7 +3,7 @@ if (!localStorage["blocked"]) {
     localStorage["blocked"] = false;
 }
 
-chrome.browserAction.onClicked.addListener(function(tab) {
+chrome.browserAction.onClicked.addListener(function (tab) {
     localStorage["blocked"] = !JSON.parse(localStorage["blocked"]);
     toggle = !JSON.parse(localStorage["blocked"]);
     if (toggle) {
@@ -11,10 +11,8 @@ chrome.browserAction.onClicked.addListener(function(tab) {
             since: 0
         }, {
             cache: true,
-            appcache: true,
-        }, function() {
-            console.log("remove");
-        });
+            appcache: true
+        }, function () {});
         chrome.browserAction.setIcon({
             path: "images/on.png"
         });
@@ -25,14 +23,14 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     }
 });
 
-chrome.webRequest.onBeforeRequest.addListener(function(details) {
+chrome.webRequest.onBeforeRequest.addListener(function (details) {
     if (JSON.parse(localStorage["blocked"])) {
         localStorage["current_in_WL"] = true;
     } else {
         chrome.tabs.query({
             'active': true
-        }, function(tabs) {
-            chrome.storage.sync.get(null, function(items) { //check whitelist
+        }, function (tabs) {
+            chrome.storage.sync.get(null, function (items) { //check whitelist
                 let f = false;
                 for (i in items.whitelist) {
                     if (items.whitelist[i].url == tabs[0].url) {
@@ -44,8 +42,12 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
                 else localStorage["current_in_WL"] = false;
             });
         });
-        // check if base64 then add tag
-        localStorage[details.url] = true; // interacting with server
+        // interacting with server 
+        // chrome url check     
+        var reg = new RegExp("chrome-extension://");
+        var chromeChecked = reg.test(details.url);
+        if(chromeChecked) {}
+        else localStorage[details.url] = true;
     }
 }, {
     urls: ["<all_urls>"],
@@ -53,7 +55,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 }, ["blocking"]);
 
 chrome.webRequest.onHeadersReceived.addListener(
-    function(details) {
+    function (details) {
         var whitelistChecked;
         var urlChecked;
         if (typeof localStorage["current_in_WL"] !== "undefined" &&
@@ -64,8 +66,6 @@ chrome.webRequest.onHeadersReceived.addListener(
             localStorage[details.url] !== "undefined") {
             urlChecked = JSON.parse(localStorage[details.url]);
         }
-        // chrome url check
-        // if base64 
         localStorage.removeItem(details.url);
         if (whitelistChecked) {
 
@@ -78,9 +78,12 @@ chrome.webRequest.onHeadersReceived.addListener(
     }, ["blocking"]
 );
 
-chrome.webRequest.onResponseStarted.addListener(function(details) {
-    // gif filtering
-}, {
-    urls: ["<all_urls>"],
-    types: ["image"]
-}, ["responseHeaders"]);
+// chrome.webRequest.onResponseStarted.addListener(function(details) {
+//     // gif filtering
+//     // check response header content type if image/gif 
+// }, {
+//     urls: ["<all_urls>"],
+//     types: ["image"]
+// }, ["responseHeaders"]);
+
+// chrome.runtime.onMessage.addListener(function)
