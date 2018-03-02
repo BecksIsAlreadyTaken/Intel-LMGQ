@@ -59,6 +59,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
             request.setRequestHeader("Content-Type", "application/json");
             request.send(details.url);
             if (request.responseText == 1) localStorage[details.url] = true;
+            console.log(details.url);
         }
     }
 }, {
