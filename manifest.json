@@ -1,11 +1,11 @@
 {
-    "name": "nsfw block",
-    "description": "init version",
+    "name": "teen shield",
+    "description": "version 1.0",
     "version": "1.0",
     "manifest_version": 2,
     "browser_action": {
         "default_icon": "images/on.png",
-        "default_title": "nsfw block"
+        "default_title": "click to toggle"
     },
     "permissions": [
         "storage",
@@ -16,11 +16,6 @@
         "webRequestBlocking",
         "browsingData"
     ],
-    "content_scripts": [{
-        "matches": ["http://*/*", "https://*/*"],
-        "css": ["css/mycss.css"],
-        "js": ["js/jquery.min.js", "js/content.js"]
-    }],
     "background": {
         "scripts": ["js/jquery.min.js", "js/background.js"],
         "presistent": true

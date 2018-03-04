@@ -1,10 +1,9 @@
 var toggle;
-var request = new XMLHttpRequest();
+var request = new XMLHttpRequest(); // 
+var url = "http://192.168.1.106:8000"; // cloud service server
 
-var url = "http://192.168.1.106:8000";
 
-
-if (!localStorage["blocked"]) {
+if (!localStorage["blocked"]) { // monitor state on/off
     localStorage["blocked"] = false;
 }
 
@@ -12,7 +11,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     localStorage["blocked"] = !JSON.parse(localStorage["blocked"]);
     toggle = !JSON.parse(localStorage["blocked"]);
     if (toggle) {
-        chrome.browsingData.remove({
+        chrome.browsingData.remove({ // clear browsing data (cached images) to monitor requests
             since: 0
         }, {
             cache: true,
@@ -21,9 +20,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         chrome.browserAction.setIcon({
             path: "images/on.png"
         });
-        // popup here
-        // popup onClicked send message to content
-        // popup button not switch
     } else {
         chrome.browserAction.setIcon({
             path: "images/off.png"
@@ -38,7 +34,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
         chrome.tabs.query({
             'active': true
         }, function(tabs) {
-            chrome.storage.sync.get(null, function(items) { //check whitelist
+            chrome.storage.sync.get(null, function(items) { //check the whitelist
                 let f = false;
                 for (i in items.whitelist) {
                     if (items.whitelist[i].url == tabs[0].url) {
@@ -52,73 +48,30 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
         });
         // chrome url check     
         var reg = new RegExp("chrome-extension://");
-        var chromeChecked = reg.test(details.url);
-
-        if (chromeChecked) {} else { // interacting with server 
-            request.open("POST", url, false);
-            request.setRequestHeader("Content-Type", "application/json");
-            request.send(details.url);
-            if (request.responseText == 1) localStorage[details.url] = true;
-            console.log(details.url);
-        }
-    }
-}, {
-    urls: ["<all_urls>"],
-    types: ["image"]
-}, ["blocking"]);
-
-chrome.webRequest.onHeadersReceived.addListener(
-    function(details) {
         var whitelistChecked;
-        var urlChecked;
         if (typeof localStorage["current_in_WL"] !== "undefined" &&
             localStorage["current_in_WL"] !== "undefined") {
             whitelistChecked = JSON.parse(localStorage["current_in_WL"]);
         }
-        if (typeof localStorage[details.url] !== "undefined" &&
-            localStorage[details.url] !== "undefined") {
-            urlChecked = JSON.parse(localStorage[details.url]);
+        var chromeChecked = reg.test(details.url);
+        if (chromeChecked) {} else {
+            if (whitelistChecked) {
+                // do something if current url is in the whitelist
+            } else { // interacting with server 
+                request.open("POST", url, false);
+                request.setRequestHeader("Content-Type", "application/json");
+                request.send(details.url);
+                if (request.responseText == 1) {
+                    // redirect 
+                    return {
+                        redirectUrl: chrome.runtime.getURL('images/blocked.svg')
+                    };
+                }
+            }
         }
-        localStorage.removeItem(details.url);
-        if (whitelistChecked) {
 
-        } else if (urlChecked) return {
-            redirectUrl: chrome.runtime.getURL('images/blocked.svg')
-        };
-    }, {
-        urls: ["<all_urls>"],
-        types: ["image"]
-    }, ["blocking"]
-);
-
-// chrome.webRequest.onCompleted.addListener(function(details) {
-//     var reg = new RegExp("chrome-extension://");
-//     var chromeChecked = reg.test(details.url);
-//     var request = new XMLHttpRequest();
-//     var url = "http://192.168.1.106:8000"
-//     request.open("GET", url, false);
-//     if (chromeChecked) {} else {
-//         request.send(details.url);
-//         if(request.responseText == 1) localStorage[details.url] = true;
-//     }
-//     console.log(details);
-//     var whitelistChecked;
-//     var urlChecked;
-//     if (typeof localStorage["current_in_WL"] !== "undefined" &&
-//         localStorage["current_in_WL"] !== "undefined") {
-//         whitelistChecked = JSON.parse(localStorage["current_in_WL"]);
-//     }
-//     if (typeof localStorage[details.url] !== "undefined" &&
-//         localStorage[details.url] !== "undefined") {
-//         urlChecked = JSON.parse(localStorage[details.url]);
-//     }
-//     localStorage.removeItem(details.url);
-//     if (whitelistChecked) {
-
-//     } else if (urlChecked) return {
-//         redirectUrl: chrome.runtime.getURL('images/blocked.svg')
-//     };
-// }, {
-//     urls: ["<all_urls>"],
-//     types: ["image"]
-// }, ["responseHeaders"]);
+    }
+}, {
+urls: ["<all_urls>"],
+types: ["image"]
+}, ["blocking"]);
