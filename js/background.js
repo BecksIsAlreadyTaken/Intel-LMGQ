@@ -4,7 +4,21 @@ var url = "http://192.168.1.106:8000"; // cloud service server
 
 var cache = new Array();
 
-function delHeader(str) {
+var interval = 0;
+
+var timer = setInterval(function () { // timer 
+    if (0 == interval) {
+        checkWhitelist();
+    }
+    interval++;
+    if (1000 <= interval) {
+        checkWhitelist();
+        clearCache();
+        interval = 0;
+    }
+}, 1000);
+
+function delHeader(str) { // cut server URL
     var test = "http://192.168.1.106:8000/?url=";
     var temp = str;
     var index = temp.indexOf(test);
@@ -15,7 +29,7 @@ function delHeader(str) {
     return temp;
 }
 
-function checkCache(str) {
+function checkCache(str) { // check if image url in cache
     var f = false;
     for (var i = 0; i < cache.length; i++) {
         if (cache[i].url == str)
@@ -24,7 +38,32 @@ function checkCache(str) {
     return -1;
 }
 
-function checkUrl(str) {
+function checkWhitelist() { // check if current tab's url in whitelist
+    chrome.tabs.query({
+        active: true,
+        currentWindow: true
+    }, function (tabs) {
+        chrome.storage.local.get(null, function (items) { //check whitelist
+            let f = false;
+            for (i in items.whitelist) {
+                if (items.whitelist[i].url == tabs[0].url) {
+                    f = true;
+                    break;
+                }
+            }
+            if (f) localStorage["current_in_WL"] = true;
+            else localStorage["current_in_WL"] = false;
+        });
+    });
+}
+
+function clearCache() { // clear image url cache
+    if (cache.length > 1000) {
+        cache.splice(0, cache.length);
+    }
+}
+
+function checkUrl(str) { // check if the request is from cloud server
     var testip = "http://192.168.1.106:8000/?url=";
     var temp = str;
     var index = temp.indexOf(testip);
@@ -32,10 +71,10 @@ function checkUrl(str) {
     else return 1;
 }
 
-chrome.browserAction.onClicked.addListener(function (tab) {
+chrome.browserAction.onClicked.addListener(function (tab) { // browser icon clicked
     toggle = !toggle;
     if (toggle) {
-        chrome.browsingData.remove({ // clear browsing data (cached images) to monitor requests
+        chrome.browsingData.remove({ // clear browsing data (cached images) to monitor new image requests
             since: 0
         }, {
             cache: true,
@@ -55,8 +94,8 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     }
 });
 
-chrome.webRequest.onBeforeRequest.addListener(function (details) {
-    // chrome check
+chrome.webRequest.onBeforeRequest.addListener(function (details) { 
+    // chrome url check
     var reg = new RegExp("chrome-extension://");
     var chromeChecked = reg.test(details.url);
     if (chromeChecked) {} else {
