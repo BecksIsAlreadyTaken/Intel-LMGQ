@@ -1,7 +1,7 @@
 {
     "name": "TINShield",
-    "description": "version 1.0",
-    "version": "1.0",
+    "description": "TINShield, an extension which filters NSFW content, is a shield for teenagers.",
+    "version": "1.5",
     "manifest_version": 2,
     "icons": {
         "64": "/images/TINShield.png"
@@ -19,10 +19,6 @@
         "webRequestBlocking",
         "browsingData"
     ],
-    "content_scripts": [{
-        "matches": ["http://*/*","https://*/*"],
-        "js": ["js/content.js"]
-    }],
     "background": {
         "scripts": ["/js/jquery.min.js", "/js/background.js"],
         "presistent": true

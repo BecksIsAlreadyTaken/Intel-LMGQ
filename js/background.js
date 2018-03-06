@@ -4,17 +4,6 @@ var url = "http://192.168.1.106:8000"; // cloud service server
 
 var cache = new Array();
 
-// chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-//     if (request.toBg == "1") {
-//         chrome.browsingData.remove({ // clear browsing data (cached images) to monitor requests
-//             since: 0
-//         }, {
-//             cache: true,
-//             appcache: true
-//         }, function () {});
-//     }
-// });
-
 function delHeader(str) {
     var test = "http://192.168.1.106:8000/?url=";
     var temp = str;
