@@ -31,11 +31,12 @@ $(function() {
     });
     $('#save').click(function() {
         var wl = $('#table').bootstrapTable('getData');
-        chrome.storage.sync.set({
+        chrome.storage.local.set({
             whitelist: wl
         }, function() {
             alert('Whitelist saved.');
         });
+        localStorage.removeItem('current_in_WL');
     });
     $('#remove').click(function() {
         var urls = $.map($('#table').bootstrapTable('getSelections'), function(row) {
@@ -52,6 +53,7 @@ $(function() {
     // $('#export').click(function() {
 
     // });
+    localStorage.removeItem('current_in_WL');
 });
 $(document).ready(restore_whitelist);
 
@@ -70,7 +72,7 @@ function checkUrl(url) {
 }
 
 function checkExist(_url) {
-    chrome.storage.sync.get({
+    chrome.storage.local.get({
         whitelist: []
     }, function(items) {
         var flag;
@@ -94,7 +96,7 @@ function checkExist(_url) {
 }
 
 function restore_whitelist() {
-    chrome.storage.sync.get({
+    chrome.storage.local.get({
         whitelist: []
     }, function(items) {
         $('#table').bootstrapTable('append', items.whitelist);

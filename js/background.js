@@ -1,77 +1,135 @@
-var toggle;
-var request = new XMLHttpRequest(); // 
+var toggle = true;
+
 var url = "http://192.168.1.106:8000"; // cloud service server
 
+var cache = new Array();
 
-if (!localStorage["blocked"]) { // monitor state on/off
-    localStorage["blocked"] = false;
+// chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+//     if (request.toBg == "1") {
+//         chrome.browsingData.remove({ // clear browsing data (cached images) to monitor requests
+//             since: 0
+//         }, {
+//             cache: true,
+//             appcache: true
+//         }, function () {});
+//     }
+// });
+
+function delHeader(str) {
+    var test = "http://192.168.1.106:8000/?url=";
+    var temp = str;
+    var index = temp.indexOf(test);
+    while (index != -1) {
+        temp = temp.substr(index + test.length);
+        index = temp.indexOf(test);
+    }
+    return temp;
 }
 
-chrome.browserAction.onClicked.addListener(function(tab) {
-    localStorage["blocked"] = !JSON.parse(localStorage["blocked"]);
-    toggle = !JSON.parse(localStorage["blocked"]);
+function checkCache(str) {
+    var f = false;
+    for (var i = 0; i < cache.length; i++) {
+        if (cache[i].url == str)
+            return cache[i].result;
+    }
+    return -1;
+}
+
+function checkUrl(str) {
+    var testip = "http://192.168.1.106:8000/?url=";
+    var temp = str;
+    var index = temp.indexOf(testip);
+    if (index == -1) return 0;
+    else return 1;
+}
+
+chrome.browserAction.onClicked.addListener(function (tab) {
+    toggle = !toggle;
     if (toggle) {
         chrome.browsingData.remove({ // clear browsing data (cached images) to monitor requests
             since: 0
         }, {
             cache: true,
             appcache: true
-        }, function() {});
+        }, function () {});
         chrome.browserAction.setIcon({
-            path: "images/on.png"
+            path: {
+                "64": "/images/on.png"
+            }
         });
     } else {
         chrome.browserAction.setIcon({
-            path: "images/off.png"
+            path: {
+                "64": "/images/off.png"
+            }
         });
     }
 });
 
-chrome.webRequest.onBeforeRequest.addListener(function(details) {
-    if (JSON.parse(localStorage["blocked"])) {
-        localStorage["current_in_WL"] = true;
-    } else {
-        chrome.tabs.query({
-            'active': true
-        }, function(tabs) {
-            chrome.storage.sync.get(null, function(items) { //check the whitelist
-                let f = false;
-                for (i in items.whitelist) {
-                    if (items.whitelist[i].url == tabs[0].url) {
-                        f = true;
-                        break;
-                    }
-                }
-                if (f) localStorage["current_in_WL"] = true;
-                else localStorage["current_in_WL"] = false;
-            });
-        });
-        // chrome url check     
-        var reg = new RegExp("chrome-extension://");
-        var whitelistChecked;
-        if (typeof localStorage["current_in_WL"] !== "undefined" &&
-            localStorage["current_in_WL"] !== "undefined") {
-            whitelistChecked = JSON.parse(localStorage["current_in_WL"]);
-        }
-        var chromeChecked = reg.test(details.url);
-        if (chromeChecked) {} else {
-            if (whitelistChecked) {
-                // do something if current url is in the whitelist
-            } else { // interacting with server 
-                request.open("POST", url, false);
-                request.setRequestHeader("Content-Type", "application/json");
-                request.send(details.url);
-                if (request.responseText == 1) {
-                    // redirect 
+chrome.webRequest.onBeforeRequest.addListener(function (details) {
+    // chrome check
+    var reg = new RegExp("chrome-extension://");
+    var chromeChecked = reg.test(details.url);
+    if (chromeChecked) {} else {
+        if (toggle) {
+            if (checkUrl(details.url) == 1) {} else {
+                if (checkCache(details.url) == -1) {
+                    return {
+                        redirectUrl: "http://192.168.1.106:8000" + "?url=" + details.url
+                    };
+                } else if (checkCache(details.url) == 1) {
                     return {
                         redirectUrl: chrome.runtime.getURL('images/blocked.svg')
                     };
                 }
             }
         }
-
     }
 }, {
-urls: ["<all_urls>"],
-types: ["image"]
+    urls: ["<all_urls>"],
+    types: ["image"]
 }, ["blocking"]);
+
+chrome.webRequest.onHeadersReceived.addListener(function (details) {
+    if (toggle) {
+        var flag = false;
+        var exit = false;
+        for (var i = 0; i < details.responseHeaders.length; i++) {
+            if (details.responseHeaders[i].name.toLowerCase() == 'content-type') {
+                var result = details.responseHeaders[i].value;
+                if (result == '1') {
+                    flag = true;
+                    cache.push({
+                        url: delHeader(details.url),
+                        result: 1
+                    })
+                    break;
+                } else if (result == '0') {
+                    cache.push({
+                        url: delHeader(details.url),
+                        result: 0
+                    })
+                    break;
+                } else {
+                    exit = true;
+                    break;
+                }
+            }
+        }
+        if (exit) {} else {
+            if (flag) {
+                return {
+                    redirectUrl: chrome.runtime.getURL('images/blocked.svg')
+                };
+            } else {
+                var temp = delHeader(details.url);
+                return {
+                    redirectUrl: temp
+                };
+            }
+        }
+    }
+}, {
+    urls: ["<all_urls>"],
+    types: ["image"]
+}, ["blocking", "responseHeaders"]);
