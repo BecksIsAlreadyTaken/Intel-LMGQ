@@ -1,2 +1,2 @@
 # Intel-teenShield
-A software based on AI technology. 
+A software based on Machine learning. 
